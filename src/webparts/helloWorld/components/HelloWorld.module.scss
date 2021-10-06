@@ -1,4 +1,5 @@
 .container {
+  margin: 0 auto;
   width: 960px;
   display: flex;
   flex-direction: column;
@@ -15,9 +16,33 @@
 }
 
 .taskCard {
-  width: 130px;
+  text-align: center;
+  width: 200px;
   border: 1px solid #e4e4e4;
   border-radius: 8px;
-  padding: 8px;
+  padding: 16px;
   margin: 10px 10px 0px 0px;
+}
+.addBtn {
+  padding: 8px 12px;
+  color: #fff;
+  background-color: rgba(99, 163, 99, 0.76);
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  margin: 0px 15px;
+}
+
+.pending {
+  color: #f00;
+}
+.ok{
+  color: rgb(20, 173, 20);
+}
+
+.addBtn:hover, .checkbox:hover {
+  cursor: pointer;
+}
+.label {
+  margin-left: 12px;
 }
