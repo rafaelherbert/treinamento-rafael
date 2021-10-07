@@ -35,14 +35,17 @@
   color: rgb(20, 173, 20);
 }
 
-.addBtn:hover, .checkbox:hover {
-  cursor: pointer;
-}
 .label {
   margin-left: 12px;
 }
 
-.addBtn, .moreBtn {
+.btnContainer { 
+  margin-top: 15px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.addBtn, .moreBtn, .delBtn {
   background-color: rgba(99, 163, 99, 0.76);
   font-weight: bold;
   border: none;
@@ -50,14 +53,17 @@
   border-radius: 6px;
   padding: 8px;
 }
-.moreBtn:hover {
+
+.delBtn {
+  background-color: rgba(236, 44, 44, 0.87);
+  padding: 4px 6px;
+  margin-left: 10px;
+}
+
+.moreBtn:hover, .delBtn:hover, .addBtn:hover, .checkbox:hover {
   cursor: pointer;
 }
-.btnContainer { 
-  margin-top: 15px;
-  text-align: center;
-  font-size: 16px;
-}
+
 .btnContainer>button {
   width: 100%;
 }

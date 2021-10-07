@@ -15,6 +15,7 @@ import TaskCard from './TaskCard'
 
 export default function HelloWorld() {
 
+  const [currentPage, setCurrentPage] = useState<PagedItemCollection<ListData[]>>(null)
   const [tasks, setTasks] = useState<ListData[]>(null);
   const [task, setTask] = useState<ListData>({
     Title: "",
@@ -27,8 +28,15 @@ export default function HelloWorld() {
   }, []);
 
   const firstLoad = async () => {
-    const items: ListData[] = await sp.web.lists.getByTitle("Tarefas").items.get();
-    setTasks(items);
+    const page: PagedItemCollection<ListData[]> = await sp.web.lists.getByTitle("Tarefas").items.top(6).getPaged();
+    setCurrentPage(page)
+    setTasks(page.results)
+  }
+
+  const loadMore = async () => {
+    const nextPage: PagedItemCollection<ListData[]> = await currentPage.getNext()
+    setTasks([...tasks, ...nextPage.results])
+    setCurrentPage(nextPage)
   }
 
   const loading = tasks == null;
@@ -49,7 +57,7 @@ export default function HelloWorld() {
     firstLoad();
   }
 
-  const inserirTarefa = async () => {
+  const itemAdd = async () => {
     setTask({ ...task, Title: '', Description: '', Done: false })
     const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
     firstLoad()
@@ -71,12 +79,13 @@ export default function HelloWorld() {
           Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.ok}>Finalizado</span>}
         </label>
         <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
-        <button className={styles.addBtn} onClick={inserirTarefa}>Adicionar tarefa</button>
+        <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
       <div className={styles.taskContainer}>
         {loading ? <p>Buscando...</p> : taskList() }
       </div>
       <div className={styles.btnContainer}>
+        { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Não há mais tarefas</p> }
       </div>
     </div>
   );
