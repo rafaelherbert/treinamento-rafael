@@ -25,11 +25,6 @@
 }
 .addBtn {
   padding: 8px 12px;
-  color: #fff;
-  background-color: rgba(99, 163, 99, 0.76);
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
   margin: 0px 15px;
 }
 
@@ -45,4 +40,24 @@
 }
 .label {
   margin-left: 12px;
+}
+
+.addBtn, .moreBtn {
+  background-color: rgba(99, 163, 99, 0.76);
+  font-weight: bold;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px;
+}
+.moreBtn:hover {
+  cursor: pointer;
+}
+.btnContainer { 
+  margin-top: 15px;
+  text-align: center;
+  font-size: 16px;
+}
+.btnContainer>button {
+  width: 100%;
 }

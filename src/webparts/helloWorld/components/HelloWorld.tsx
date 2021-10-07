@@ -9,13 +9,12 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 
-import { IItemAddResult, PagedItemCollection } from "@pnp/sp/items";
+import { IItemAddResult, Items, PagedItemCollection } from "@pnp/sp/items";
 
 import TaskCard from './TaskCard'
 
 export default function HelloWorld() {
 
-  const [dataNextPage, setdataNextPage] = useState<ListData>()
   const [tasks, setTasks] = useState<ListData[]>(null);
   const [task, setTask] = useState<ListData>({
     Title: "",
@@ -24,41 +23,12 @@ export default function HelloWorld() {
   });
 
   useEffect(() => {
-    loadData();
+    firstLoad()
   }, []);
 
-  const loadData = async () => {
-    const list = sp.web.lists.getByTitle("Tarefas");
-    const pageItemsArr: any = await list.items.top(3).getPaged();
-    const nextPage = await pageItemsArr.getNext();
-
-    if (tasks !== null) setTasks(null)
-    const currentDataPage: ListData[] = pageItemsArr.results.map(item => (
-      {
-        Id: item.ID,
-        Title: item.Title,
-        Description: item.Description,
-        Done: item.Done
-      }
-    ));
-
-    const proxPagDados = nextPage.results.map(item => (
-      {
-        Id: item.ID,
-        Title: item.Title,
-        Description: item.Description,
-        Done: item.Done
-      }
-    ));
-    
-    // console.log(currentDataPage)
-    // console.log(proxPagDados)
-
-    // console.log({ ...currentDataPage, ...proxPagDados })
-
-    setdataNextPage({ ...currentDataPage, ...proxPagDados });
-    
-    setTasks(currentDataPage)
+  const firstLoad = async () => {
+    const items: ListData[] = await sp.web.lists.getByTitle("Tarefas").items.get();
+    setTasks(items);
   }
 
   const loading = tasks == null;
@@ -76,18 +46,18 @@ export default function HelloWorld() {
     const iid: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
       Done: !item.Done
     })
-    loadData();
+    firstLoad();
   }
 
   const inserirTarefa = async () => {
     setTask({ ...task, Title: '', Description: '', Done: false })
     const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
-    loadData()
+    firstLoad()
   }
 
   const itemDelete = async (item) => {
     const itemId: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
-    loadData()
+    firstLoad()
   }
 
   return (
@@ -104,9 +74,9 @@ export default function HelloWorld() {
         <button className={styles.addBtn} onClick={inserirTarefa}>Adicionar tarefa</button>
       </div>
       <div className={styles.taskContainer}>
-        {loading ? <p>Buscando...</p> : 
-           taskList()
-          }
+        {loading ? <p>Buscando...</p> : taskList() }
+      </div>
+      <div className={styles.btnContainer}>
       </div>
     </div>
   );
