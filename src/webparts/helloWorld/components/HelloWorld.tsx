@@ -9,12 +9,13 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 
-import { IItemAddResult } from "@pnp/sp/items";
+import { IItemAddResult, PagedItemCollection } from "@pnp/sp/items";
 
 import TaskCard from './TaskCard'
 
 export default function HelloWorld() {
 
+  const [dataNextPage, setdataNextPage] = useState<ListData>()
   const [tasks, setTasks] = useState<ListData[]>(null);
   const [task, setTask] = useState<ListData>({
     Title: "",
@@ -28,19 +29,36 @@ export default function HelloWorld() {
 
   const loadData = async () => {
     const list = sp.web.lists.getByTitle("Tarefas");
-    const items = await list.items.get();
+    const pageItemsArr: any = await list.items.top(3).getPaged();
+    const nextPage = await pageItemsArr.getNext();
 
     if (tasks !== null) setTasks(null)
-
-    const listDataArr: ListData[] = items.map(item => (
+    const currentDataPage: ListData[] = pageItemsArr.results.map(item => (
       {
         Id: item.ID,
         Title: item.Title,
         Description: item.Description,
         Done: item.Done
       }
-    ))
-    setTimeout(() => setTasks(listDataArr), 500)
+    ));
+
+    const proxPagDados = nextPage.results.map(item => (
+      {
+        Id: item.ID,
+        Title: item.Title,
+        Description: item.Description,
+        Done: item.Done
+      }
+    ));
+    
+    // console.log(currentDataPage)
+    // console.log(proxPagDados)
+
+    // console.log({ ...currentDataPage, ...proxPagDados })
+
+    setdataNextPage({ ...currentDataPage, ...proxPagDados });
+    
+    setTasks(currentDataPage)
   }
 
   const loading = tasks == null;
@@ -51,22 +69,18 @@ export default function HelloWorld() {
     const el = e.target
     if (el.id == 'Title') setTask({ ...task, Title: el.value })
     if (el.id == 'Description') setTask({ ...task, Description: el.value })
-    if (el.id == 'Done') {
-      setTask({ ...task, Done: !task.Done })
-      // itemUpdate(task)
-    }
+    if (el.id == 'Done') setTask({ ...task, Done: !task.Done })
   }
   
   const itemUpdate = async (item) => {
-    setTask({ ...task, Done: !task.Done })
-    console.log(!task.Done)
     const iid: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
-      Done: !task.Done
+      Done: !item.Done
     })
-    loadData()
+    loadData();
   }
 
   const inserirTarefa = async () => {
+    setTask({ ...task, Title: '', Description: '', Done: false })
     const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
     loadData()
   }

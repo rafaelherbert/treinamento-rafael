@@ -15,8 +15,8 @@ const TaskCard = ({ item, deleteMethod, itemUpdate }: ITaskProps) => {
             <h1>{item.Title}</h1>
             <p>{item.Description}</p>
             <p>Status: {item.Done ? <span className={styles.ok}>Finalizado</span> : <span className={styles.pending}>Pendente</span>}</p>
-            <input type="checkbox" checked={item.Done} onChange={() => itemUpdate(item)}/>
-            <button onClick={() => {deleteMethod(item)}}>Apagar</button>
+            <input type="checkbox" checked={item.Done} onClick={() => itemUpdate(item)}/>
+            <button onClick={() => deleteMethod(item)}>Apagar</button>
         </div>
     )
 }
