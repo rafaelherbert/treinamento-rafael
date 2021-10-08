@@ -6,10 +6,12 @@ import { IListData } from './Mockup'
 interface ITaskProps {
     item: IListData;
     deleteMethod: (item: IListData) => void;
-    itemUpdate: (item: IListData) => void
+    itemUpdate: (item: IListData) => void;
+    tasksComplete: number;
+    tasksPending: number;
 }
 
-const TaskCard = ({ item, deleteMethod, itemUpdate }: ITaskProps) => {
+const TaskCard = ({ item, deleteMethod, itemUpdate, tasksComplete, tasksPending}: ITaskProps) => {
 
     useEffect(() => {
     }, []);

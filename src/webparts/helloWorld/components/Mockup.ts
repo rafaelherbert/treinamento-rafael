@@ -12,6 +12,8 @@ export interface IListData {
         Email: string;
         Title: string;
     };
+    Complete: number;
+    Pending: number;
 }
 
 export default [

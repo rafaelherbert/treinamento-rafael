@@ -17,6 +17,9 @@ import * as _ from 'lodash';
 
 export default function HelloWorld(props: IHelloWorldProps) {
   
+  const [countTasksPending, setCountTasksPending] = useState<number>()
+  const [countTasksComplete, setCountTasksComplete] = useState<number>()
+
   const [currentPage, setCurrentPage] = useState<PagedItemCollection<IListData[]>>(null);
   const [tasks, setTasks] = useState<IListData[]>(null);
   const [task, setTask] = useState<IListData>({
@@ -31,7 +34,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const firstLoad = async () => {
     const userId = props.context.pageContext.legacyPageContext["userId"]
-    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(3).getPaged();
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(6).getPaged();
 
     await Promise.all(page.results.map(async (item) => {
       const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
@@ -39,13 +42,22 @@ export default function HelloWorld(props: IHelloWorldProps) {
       return item;
     }));
     
+    const tasksComplete = []
+    const tasksPending = []
+
+    page.results.forEach(status => {
+      if(!status.Done) return tasksPending.push(status)
+      tasksComplete.push(status)
+    })
+    setCountTasksComplete(tasksComplete.length)
+    setCountTasksPending(tasksPending.length)
     setCurrentPage(page);
     setTasks(page.results);
   }
 
   const taskMethod = () => (
     tasks == null ? [] : tasks.map((item, i) => {
-      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />;
+      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} tasksComplete={countTasksComplete} tasksPending={countTasksPending}/>;
     })
   )
 
@@ -57,6 +69,17 @@ export default function HelloWorld(props: IHelloWorldProps) {
       item.User = user;
       return item;
     }));
+
+  
+    const tasksComplete = []
+    const tasksPending = []
+  
+    nextPage.results.forEach(status => {
+      if(!status.Done) return tasksPending.push(status)
+      tasksComplete.push(status)
+    })
+    setCountTasksComplete(tasksComplete.length)
+    setCountTasksPending(tasksPending.length)
 
     setTasks([...tasks, ...nextPage.results]);
     setCurrentPage(nextPage);
@@ -104,8 +127,8 @@ export default function HelloWorld(props: IHelloWorldProps) {
         <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
       <div className={styles.containerStatusTarefas}>
-        <p className={styles.statusTarefa}>Pendentes <span className={styles.taskCount}>3</span></p>
-        <p className={styles.statusTarefa} >Finalizadas <span className={styles.taskCount}>5</span></p>
+        <p className={styles.statusTarefa}>Pendentes <span className={styles.taskCount}>{countTasksPending}</span></p>
+        <p className={styles.statusTarefa} >Finalizadas <span className={styles.taskCount}>{countTasksComplete}</span></p>
       </div>
       <div className={styles.taskContainer}>
         {loading ? <p>Buscando...</p> : taskMethod()}
