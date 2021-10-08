@@ -2,25 +2,27 @@ import * as React from 'react';
 import styles from './HelloWorld.module.scss';
 import { IHelloWorldProps } from './IHelloWorldProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import data, { ListData } from "./Mockup";
+import data, { IListData } from "./Mockup";
 import { useEffect, useState } from "react";
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-
+import "@pnp/sp/site-users";
 import { IItemAddResult, Items, PagedItemCollection } from "@pnp/sp/items";
 
 import TaskCard from './TaskCard'
+import { PropertyPaneSlider } from '@microsoft/sp-property-pane';
+import * as _ from 'lodash';
 
-export default function HelloWorld() {
-
-  const [currentPage, setCurrentPage] = useState<PagedItemCollection<ListData[]>>(null)
-  const [tasks, setTasks] = useState<ListData[]>(null);
-  const [task, setTask] = useState<ListData>({
+export default function HelloWorld(props: IHelloWorldProps) {
+  
+  const [currentPage, setCurrentPage] = useState<PagedItemCollection<IListData[]>>(null);
+  const [tasks, setTasks] = useState<IListData[]>(null);
+  const [task, setTask] = useState<IListData>({
     Title: "",
     Description: "",
-    Done: false
+    Done: false,
   });
 
   useEffect(() => {
@@ -28,20 +30,39 @@ export default function HelloWorld() {
   }, []);
 
   const firstLoad = async () => {
-    const page: PagedItemCollection<ListData[]> = await sp.web.lists.getByTitle("Tarefas").items.top(6).getPaged();
-    setCurrentPage(page)
-    setTasks(page.results)
+    const userId = props.context.pageContext.legacyPageContext["userId"]
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(3).getPaged();
+
+    await Promise.all(page.results.map(async (item) => {
+      const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
+      item.User = user;
+      return item;
+    }));
+    
+    setCurrentPage(page);
+    setTasks(page.results);
   }
 
+  const taskMethod = () => (
+    tasks == null ? [] : tasks.map((item, i) => {
+      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />;
+    })
+  )
+
   const loadMore = async () => {
-    const nextPage: PagedItemCollection<ListData[]> = await currentPage.getNext()
-    setTasks([...tasks, ...nextPage.results])
-    setCurrentPage(nextPage)
+    const nextPage: PagedItemCollection<IListData[]> = await currentPage.getNext();
+
+    await Promise.all(nextPage.results.map(async (item: IListData) => {
+      const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
+      item.User = user;
+      return item;
+    }));
+
+    setTasks([...tasks, ...nextPage.results]);
+    setCurrentPage(nextPage);
   }
 
   const loading = tasks == null;
-
-  const taskList = () => { return tasks == null ? [] : tasks.map(item => (< TaskCard item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />)); }
 
   const dataForm = (e) => {
     const el = e.target
@@ -60,29 +81,34 @@ export default function HelloWorld() {
   const itemAdd = async () => {
     setTask({ ...task, Title: '', Description: '', Done: false })
     const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
-    firstLoad()
+    firstLoad();
   }
 
   const itemDelete = async (item) => {
     const itemId: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
-    firstLoad()
+    firstLoad();
   }
 
   return (
-    <div className={styles.container}>
+    <div className={ styles.container}>
+      <h1>Tarefas Diárias</h1>
       <div className={styles.form}>
         <label htmlFor="Title" className={styles.label}>Título da tarefa:</label>
         <input type="text" id="Title" value={task.Title} onChange={dataForm} />
         <label className={styles.label}>Descricao: </label>
         <input type="text" id="Description" value={task.Description} onChange={dataForm} />
         <label className={styles.label}>
-          Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.ok}>Finalizado</span>}
+          Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.done}>Finalizado</span>}
         </label>
-        <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
+          <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
         <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
+      <div className={styles.containerStatusTarefas}>
+        <p className={styles.statusTarefa}>Pendentes <span className={styles.taskCount}>3</span></p>
+        <p className={styles.statusTarefa} >Finalizadas <span className={styles.taskCount}>5</span></p>
+      </div>
       <div className={styles.taskContainer}>
-        {loading ? <p>Buscando...</p> : taskList() }
+        {loading ? <p>Buscando...</p> : taskMethod()}
       </div>
       <div className={styles.btnContainer}>
         { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Não há mais tarefas</p> }

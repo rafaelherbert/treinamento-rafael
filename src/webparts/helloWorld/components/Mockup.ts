@@ -1,15 +1,24 @@
-export interface ListData {
+import { ISiteUser } from "@pnp/sp/site-users";
+
+export interface IListData {
     Id?: number;
     Title: string;
     Description: string;
     Done: boolean;
+    Created?: string;
+    Modified?: string;
+    AuthorId?: number;
+    User?: {
+        Email: string;
+        Title: string;
+    };
 }
 
 export default [
     {
         Title: "Tarefa 1",
         Description: "Lavar a louça",
-        Done: false      
+        Done: false 
     },
     {
         Title: "Tarefa 2",
@@ -31,4 +40,4 @@ export default [
         Description: "Descascar o aipim",
         Done: false
     }
-] as ListData[];
+] as IListData[];

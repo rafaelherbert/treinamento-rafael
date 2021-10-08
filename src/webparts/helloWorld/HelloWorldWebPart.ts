@@ -5,7 +5,7 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
-import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
+import { BaseClientSideWebPart, WebPartContext } from '@microsoft/sp-webpart-base';
 import { setup as pnpSetup } from "@pnp/common";
 import * as strings from 'HelloWorldWebPartStrings';
 import HelloWorld from './components/HelloWorld';
@@ -13,6 +13,7 @@ import { IHelloWorldProps } from './components/IHelloWorldProps';
 
 export interface IHelloWorldWebPartProps {
   description: string;
+  context: WebPartContext;
 }
 
 export default class HelloWorldWebPart extends BaseClientSideWebPart<IHelloWorldWebPartProps> {
@@ -29,7 +30,8 @@ export default class HelloWorldWebPart extends BaseClientSideWebPart<IHelloWorld
     const element: React.ReactElement<IHelloWorldProps> = React.createElement(
       HelloWorld,
       {
-        description: this.properties.description
+        description: this.properties.description,
+        context: this.context
       }
     );
 

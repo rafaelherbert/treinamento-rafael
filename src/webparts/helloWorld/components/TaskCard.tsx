@@ -1,24 +1,36 @@
 import * as React from 'react'
-
+import { useEffect } from 'react';
 import styles from "./HelloWorld.module.scss"
-import { ListData } from './Mockup'
+import { IListData } from './Mockup'
 
 interface ITaskProps {
-    item: ListData;
-    deleteMethod: (item: ListData) => void;
-    itemUpdate: (item: ListData) => void
+    item: IListData;
+    deleteMethod: (item: IListData) => void;
+    itemUpdate: (item: IListData) => void
 }
 
 const TaskCard = ({ item, deleteMethod, itemUpdate }: ITaskProps) => {
+
+    useEffect(() => {
+    }, []);
+
     return (
         <div className={styles.taskCard}>
-            <h1>{item.Title}</h1>
+            <h2>{item.Title}</h2>
             <p>{item.Description}</p>
-            <p>Status: {item.Done ? <span className={styles.ok}>Finalizado</span> : <span className={styles.pending}>Pendente</span>}</p>
-            <input type="checkbox" checked={item.Done} onClick={() => itemUpdate(item)}/>
-            <button className={styles.delBtn} onClick={() => deleteMethod(item)}>Apagar</button>
+            <div className={styles.teste}>
+                <div>
+                    { item.Done ? <span className={styles.statusDone}>{item.Created.toString().substring(0, 10)}</span> : <span className={styles.statusPending}>{item.Created.toString().substring(0, 10)}</span> } 
+                    <input type="checkbox" checked={item.Done} onClick={() => itemUpdate(item)}/>
+                </div>
+                <span>{item.User.Title}</span>
+                <img className={styles.icon} src={`/_vti_bin/DelveApi.ashx/people/profileimage?size=S&userId=${item.User.Email}`} alt={`${item.User.Title}`} />
+            </div>
+
+            <button className={styles.delBtn} onClick={() => deleteMethod(item)}>X</button>
         </div>
     )
 }
 
 export default TaskCard
+
