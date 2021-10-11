@@ -57,7 +57,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const taskMethod = () => (
     tasks == null ? [] : tasks.map((item, i) => {
-      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} tasksComplete={countTasksComplete} tasksPending={countTasksPending}/>;
+      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate}/>;
     })
   )
 
@@ -70,16 +70,15 @@ export default function HelloWorld(props: IHelloWorldProps) {
       return item;
     }));
 
-  
     const tasksComplete = []
     const tasksPending = []
-  
+
     nextPage.results.forEach(status => {
-      if(!status.Done) return tasksPending.push(status)
-      tasksComplete.push(status)
+      if(!status.Done) return tasksPending.push(status.Done)
+      tasksComplete.push(status.Done)
     })
-    setCountTasksComplete(tasksComplete.length)
-    setCountTasksPending(tasksPending.length)
+    setCountTasksPending(countTasksPending + tasksPending.length)
+    setCountTasksComplete(countTasksComplete + tasksComplete.length)
 
     setTasks([...tasks, ...nextPage.results]);
     setCurrentPage(nextPage);
@@ -122,8 +121,8 @@ export default function HelloWorld(props: IHelloWorldProps) {
         <input type="text" id="Description" value={task.Description} onChange={dataForm} />
         <label className={styles.label}>
           Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.done}>Finalizado</span>}
-        </label>
           <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
+        </label>
         <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
       <div className={styles.containerStatusTarefas}>
@@ -134,7 +133,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
         {loading ? <p>Buscando...</p> : taskMethod()}
       </div>
       <div className={styles.btnContainer}>
-        { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Não há mais tarefas</p> }
+        { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <span>Não há mais tarefas</span> }
       </div>
     </div>
   );

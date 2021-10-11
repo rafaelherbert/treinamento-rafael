@@ -1,5 +1,3 @@
-import { ISiteUser } from "@pnp/sp/site-users";
-
 export interface IListData {
     Id?: number;
     Title: string;
@@ -12,8 +10,6 @@ export interface IListData {
         Email: string;
         Title: string;
     };
-    Complete: number;
-    Pending: number;
 }
 
 export default [

@@ -7,11 +7,9 @@ interface ITaskProps {
     item: IListData;
     deleteMethod: (item: IListData) => void;
     itemUpdate: (item: IListData) => void;
-    tasksComplete: number;
-    tasksPending: number;
 }
 
-const TaskCard = ({ item, deleteMethod, itemUpdate, tasksComplete, tasksPending}: ITaskProps) => {
+const TaskCard = ({ item, deleteMethod, itemUpdate}: ITaskProps) => {
 
     useEffect(() => {
     }, []);

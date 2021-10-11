@@ -96,6 +96,9 @@ html, body {
   top: 0;
   right: 0;
 }
+.checkbox {
+  margin-left: 5px;
+}
 
 .moreBtn:hover, .delBtn:hover, .addBtn:hover, .checkbox:hover {
   cursor: pointer;
