@@ -17,9 +17,11 @@ import * as _ from 'lodash';
 
 export default function HelloWorld(props: IHelloWorldProps) {
   
-  const [countTasksPending, setCountTasksPending] = useState<number>()
+  
+  const [modalAlert, setModalAlert] = useState <boolean>(false)
+  
   const [countTasksComplete, setCountTasksComplete] = useState<number>()
-
+  const [countTasksPending, setCountTasksPending] = useState<number>()
   const [currentPage, setCurrentPage] = useState<PagedItemCollection<IListData[]>>(null);
   const [tasks, setTasks] = useState<IListData[]>(null);
   const [task, setTask] = useState<IListData>({
@@ -34,7 +36,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const firstLoad = async () => {
     const userId = props.context.pageContext.legacyPageContext["userId"]
-    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(6).getPaged();
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(12).getPaged();
 
     await Promise.all(page.results.map(async (item) => {
       const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
@@ -42,15 +44,15 @@ export default function HelloWorld(props: IHelloWorldProps) {
       return item;
     }));
     
-    const tasksComplete = []
-    const tasksPending = []
+    const tasksComplete = [];
+    const tasksPending = [];
 
     page.results.forEach(status => {
-      if(!status.Done) return tasksPending.push(status)
-      tasksComplete.push(status)
+      if(!status.Done) tasksPending.push(status);
+      tasksComplete.push(status);
     })
-    setCountTasksComplete(tasksComplete.length)
-    setCountTasksPending(tasksPending.length)
+    setCountTasksComplete(tasksComplete.length);
+    setCountTasksPending(tasksPending.length);
     setCurrentPage(page);
     setTasks(page.results);
   }
@@ -88,9 +90,9 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const dataForm = (e) => {
     const el = e.target
-    if (el.id == 'Title') setTask({ ...task, Title: el.value })
-    if (el.id == 'Description') setTask({ ...task, Description: el.value })
-    if (el.id == 'Done') setTask({ ...task, Done: !task.Done })
+    if (el.id == 'Title') return setTask({ ...task, Title: el.value })
+    if (el.id == 'Description') return setTask({ ...task, Description: el.value })
+    if (el.id == 'Done') return setTask({ ...task, Done: !task.Done })
   }
   
   const itemUpdate = async (item) => {
@@ -101,15 +103,21 @@ export default function HelloWorld(props: IHelloWorldProps) {
   }
 
   const itemAdd = async () => {
-    setTask({ ...task, Title: '', Description: '', Done: false })
-    const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
-    firstLoad();
+    if(task.Title !== '' && task.Description !== '') {
+      setTask({ ...task, Title: '', Description: '', Done: false })
+      const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
+      firstLoad();
+    }else {
+      handleModal();
+    }
   }
 
   const itemDelete = async (item) => {
     const itemId: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
     firstLoad();
   }
+
+  const handleModal = () => setModalAlert(!modalAlert);
 
   return (
     <div className={ styles.container}>
@@ -135,6 +143,13 @@ export default function HelloWorld(props: IHelloWorldProps) {
       <div className={styles.btnContainer}>
         { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <span>Não há mais tarefas</span> }
       </div>
+      { !!modalAlert ?
+       <div className={styles.modalAlert}>
+         <div className={styles.modal}>
+           <h3>Preencha todos os campos</h3>
+           <button className={styles.modalBtn} onClick={handleModal}>X</button>
+         </div>
+        </div> : modalAlert}
     </div>
   );
 }
