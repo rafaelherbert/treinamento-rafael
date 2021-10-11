@@ -9,7 +9,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users";
-import { IItemAddResult, Items, PagedItemCollection } from "@pnp/sp/items";
+import { IItemAddResult, IItemUpdateResult, Items, PagedItemCollection } from "@pnp/sp/items";
 
 import TaskCard from './TaskCard'
 import { PropertyPaneSlider } from '@microsoft/sp-property-pane';
@@ -17,9 +17,8 @@ import * as _ from 'lodash';
 
 export default function HelloWorld(props: IHelloWorldProps) {
   
-  
-  const [modalAlert, setModalAlert] = useState <boolean>(false)
-  
+  const [modalAlert, setModalAlert] = useState<boolean>(false)
+  const [filterParam, setFilterParam] = useState <string>()
   const [countTasksComplete, setCountTasksComplete] = useState<number>()
   const [countTasksPending, setCountTasksPending] = useState<number>()
   const [currentPage, setCurrentPage] = useState<PagedItemCollection<IListData[]>>(null);
@@ -47,40 +46,65 @@ export default function HelloWorld(props: IHelloWorldProps) {
     const tasksComplete = [];
     const tasksPending = [];
 
-    page.results.forEach(status => {
+    page.results.map(status => {
       if(!status.Done) tasksPending.push(status);
-      tasksComplete.push(status);
-    })
+      if(status.Done) tasksComplete.push(status);
+    });
     setCountTasksComplete(tasksComplete.length);
     setCountTasksPending(tasksPending.length);
     setCurrentPage(page);
     setTasks(page.results);
   }
 
-  const taskMethod = () => (
-    tasks == null ? [] : tasks.map((item, i) => {
-      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate}/>;
+  const filterStatusTask = async () => {
+    const userId = props.context.pageContext.legacyPageContext["userId"]
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).getPaged();
+
+    const select: any = document.getElementById('filterSelect');
+    if(select.value === 'pending') {
+      const listTasksPending = [];
+      await Promise.all(page.results.map(async (item) => {
+        const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get()
+        item.User = user
+        if(!item.Done) listTasksPending.push(item)
+      }));
+      setTasks(listTasksPending);
+    }
+    if(select.value === 'complete') {
+      const listTasksComplete = [];
+      await Promise.all(page.results.map(async (item) => {
+        const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get()
+        item.User = user
+        if(!!item.Done) listTasksComplete.push(item)
+      }));
+      setTasks(listTasksComplete);
+    }
+  }
+
+  const taskMethod = (param) => (
+    param == null ? [] : param.map((item, i) => {
+      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />;
     })
   )
 
   const loadMore = async () => {
     const nextPage: PagedItemCollection<IListData[]> = await currentPage.getNext();
-
     await Promise.all(nextPage.results.map(async (item: IListData) => {
       const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
       item.User = user;
       return item;
     }));
 
-    const tasksComplete = []
-    const tasksPending = []
+    const tasksComplete = [];
+    const tasksPending = [];
 
-    nextPage.results.forEach(status => {
-      if(!status.Done) return tasksPending.push(status.Done)
-      tasksComplete.push(status.Done)
-    })
-    setCountTasksPending(countTasksPending + tasksPending.length)
-    setCountTasksComplete(countTasksComplete + tasksComplete.length)
+    nextPage.results.forEach((status: IListData) => {
+      if(!status.Done) tasksPending.push(status.Done);
+      tasksComplete.push(status.Done);
+    });
+
+    setCountTasksPending(countTasksPending + tasksPending.length);
+    setCountTasksComplete(countTasksComplete + tasksComplete.length);
 
     setTasks([...tasks, ...nextPage.results]);
     setCurrentPage(nextPage);
@@ -96,7 +120,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
   }
   
   const itemUpdate = async (item) => {
-    const iid: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
+    const iid: IItemUpdateResult = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
       Done: !item.Done
     })
     firstLoad();
@@ -113,7 +137,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
   }
 
   const itemDelete = async (item) => {
-    const itemId: any = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
+    const itemId: void = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
     firstLoad();
   }
 
@@ -134,11 +158,17 @@ export default function HelloWorld(props: IHelloWorldProps) {
         <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
       <div className={styles.containerStatusTarefas}>
-        <p className={styles.statusTarefa}>Pendentes <span className={styles.taskCount}>{countTasksPending}</span></p>
-        <p className={styles.statusTarefa} >Finalizadas <span className={styles.taskCount}>{countTasksComplete}</span></p>
+        <p className={styles.statusTarefa}>Pendentes<span className={styles.taskCount}>{countTasksPending}</span></p>
+        <p className={styles.statusTarefa}>Finalizadas <span className={styles.taskCount}>{countTasksComplete}</span></p>
+        <select id="filterSelect" onChange={(e) => setFilterParam(e.target.value) }>
+          <option id="pending" value="pending">Pendente</option>
+          <option id="complete" value="complete">Finalizada</option>
+          <option id="all" value="all">Todas</option>
+        </select>
+        <button onClick={filterStatusTask}>Filtrar</button>
       </div>
       <div className={styles.taskContainer}>
-        {loading ? <p>Buscando...</p> : taskMethod()}
+        {loading ? <p>Buscando...</p> : taskMethod(tasks)}
       </div>
       <div className={styles.btnContainer}>
         { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <span>Não há mais tarefas</span> }

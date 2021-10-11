@@ -12,21 +12,21 @@ interface ITaskProps {
 const TaskCard = ({ item, deleteMethod, itemUpdate}: ITaskProps) => {
 
     useEffect(() => {
+        console.log(item)
     }, []);
 
     return (
         <div className={styles.taskCard}>
             <h2>{item.Title}</h2>
             <p>{item.Description}</p>
-            <div className={styles.teste}>
+            <div className={styles.cardFooter}>
                 <div>
                     { item.Done ? <span className={styles.statusDone}>{item.Created.toString().substring(0, 10)}</span> : <span className={styles.statusPending}>{item.Created.toString().substring(0, 10)}</span> } 
                     <input type="checkbox" checked={item.Done} onClick={() => itemUpdate(item)}/>
                 </div>
-                <span>{item.User.Title}</span>
-                <img className={styles.icon} src={`/_vti_bin/DelveApi.ashx/people/profileimage?size=S&userId=${item.User.Email}`} alt={`${item.User.Title}`} />
+                <span>Criado por: {item.User && <p>{item.User.Title}</p>}</span>
+                { item.User.Email && <img className={styles.icon} src={`/_vti_bin/DelveApi.ashx/people/profileimage?size=S&userId=${item.User.Email}`} alt={`${item.User.Title}`} />  }
             </div>
-
             <button className={styles.delBtn} onClick={() => deleteMethod(item)}>X</button>
         </div>
     )
