@@ -14,15 +14,21 @@ import { IItemAddResult, IItemUpdateResult, Items, PagedItemCollection } from "@
 import TaskCard from './TaskCard'
 import { PropertyPaneSlider } from '@microsoft/sp-property-pane';
 import * as _ from 'lodash';
+import { filter } from 'lodash';
+
+
+const pageSize = 6;
 
 export default function HelloWorld(props: IHelloWorldProps) {
-  
-  const [modalAlert, setModalAlert] = useState<boolean>(false)
-  const [filterParam, setFilterParam] = useState <string>()
-  const [countTasksComplete, setCountTasksComplete] = useState<number>()
-  const [countTasksPending, setCountTasksPending] = useState<number>()
-  const [currentPage, setCurrentPage] = useState<PagedItemCollection<IListData[]>>(null);
+
+  const [searchInput, setSearchInput] = useState<IListData[]>();
+
+  const [filter, setFilter] = useState<string>(null);
+  const [page, setPage] = useState<PagedItemCollection<IListData[]>>();
+  const [modalAlert, setModalAlert] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [tasks, setTasks] = useState<IListData[]>(null);
+  const [unfilteredTasks, setUnfilteredTasks] = useState<IListData[]>(null);
   const [task, setTask] = useState<IListData>({
     Title: "",
     Description: "",
@@ -33,94 +39,71 @@ export default function HelloWorld(props: IHelloWorldProps) {
     firstLoad()
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filter]);
+
   const firstLoad = async () => {
     const userId = props.context.pageContext.legacyPageContext["userId"]
-    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(12).getPaged();
-
-    await Promise.all(page.results.map(async (item) => {
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(6).getPaged();
+    setPage(page);
+    
+    const items: IListData[] = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).get();
+    await Promise.all(items.map(async (item) => {
       const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
       item.User = user;
       return item;
     }));
     
-    const tasksComplete = [];
-    const tasksPending = [];
-
-    page.results.map(status => {
-      if(!status.Done) tasksPending.push(status);
-      if(status.Done) tasksComplete.push(status);
-    });
-    setCountTasksComplete(tasksComplete.length);
-    setCountTasksPending(tasksPending.length);
-    setCurrentPage(page);
-    setTasks(page.results);
+    setUnfilteredTasks(items);
+    setTasks(items);
   }
+  
+  const filterStatusTask = async (e) => {
+    const el: HTMLInputElement = e.target
 
-  const filterStatusTask = async () => {
     const userId = props.context.pageContext.legacyPageContext["userId"]
-    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).getPaged();
-
-    const select: any = document.getElementById('filterSelect');
-    if(select.value === 'pending') {
-      const listTasksPending = [];
-      await Promise.all(page.results.map(async (item) => {
-        const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get()
-        item.User = user
-        if(!item.Done) listTasksPending.push(item)
-      }));
-      setTasks(listTasksPending);
-    }
-    if(select.value === 'complete') {
-      const listTasksComplete = [];
-      await Promise.all(page.results.map(async (item) => {
-        const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get()
-        item.User = user
-        if(!!item.Done) listTasksComplete.push(item)
-      }));
-      setTasks(listTasksComplete);
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(6).getPaged();
+    
+    if (el.value === "pending") {
+      setPage(page);
+      setFilter('pending')
+      setTasks(unfilteredTasks.filter(t => !t.Done));
+    } else if (el.value === "complete"){
+      setPage(page);
+      setFilter('complete')
+      setTasks(unfilteredTasks.filter(t => t.Done));
+    } else {
+      setPage(page);
+      setFilter('all')
+      setTasks(unfilteredTasks);
     }
   }
 
-  const taskMethod = (param) => (
-    param == null ? [] : param.map((item, i) => {
-      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />;
+  const taskMethod = (param: IListData[]) => (
+    param == null ? [] : param.slice(0, currentPage * pageSize + pageSize).map((item, i) => {
+      return <TaskCard key={i} item={item} deleteMethod={itemDelete} itemUpdate={itemUpdate} />
     })
-  )
+  );
 
   const loadMore = async () => {
-    const nextPage: PagedItemCollection<IListData[]> = await currentPage.getNext();
-    await Promise.all(nextPage.results.map(async (item: IListData) => {
-      const user: IListData["User"] = await sp.web.getUserById(item.AuthorId).get();
-      item.User = user;
-      return item;
-    }));
+    setCurrentPage(currentPage + 1);
 
-    const tasksComplete = [];
-    const tasksPending = [];
-
-    nextPage.results.forEach((status: IListData) => {
-      if(!status.Done) tasksPending.push(status.Done);
-      tasksComplete.push(status.Done);
-    });
-
-    setCountTasksPending(countTasksPending + tasksPending.length);
-    setCountTasksComplete(countTasksComplete + tasksComplete.length);
-
-    setTasks([...tasks, ...nextPage.results]);
-    setCurrentPage(nextPage);
+    const nextPage: PagedItemCollection<IListData[]> = await page.getNext();
+    setPage(nextPage);
   }
 
   const loading = tasks == null;
 
   const dataForm = (e) => {
-    const el = e.target
-    if (el.id == 'Title') return setTask({ ...task, Title: el.value })
-    if (el.id == 'Description') return setTask({ ...task, Description: el.value })
-    if (el.id == 'Done') return setTask({ ...task, Done: !task.Done })
+    const el = e.target;
+    if (el.id == 'Title') setTask({ ...task, Title: el.value })
+    if (el.id == 'Description') setTask({ ...task, Description: el.value });;
+    if (el.id == 'Done') setTask({ ...task, Done: !task.Done });
   }
   
   const itemUpdate = async (item) => {
-    const iid: IItemUpdateResult = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
+    await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).update({
       Done: !item.Done
     })
     firstLoad();
@@ -129,7 +112,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
   const itemAdd = async () => {
     if(task.Title !== '' && task.Description !== '') {
       setTask({ ...task, Title: '', Description: '', Done: false })
-      const iar: IItemAddResult = await sp.web.lists.getByTitle("Tarefas").items.add(task);
+      await sp.web.lists.getByTitle("Tarefas").items.add(task);
       firstLoad();
     }else {
       handleModal();
@@ -137,8 +120,15 @@ export default function HelloWorld(props: IHelloWorldProps) {
   }
 
   const itemDelete = async (item) => {
-    const itemId: void = await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
+    await sp.web.lists.getByTitle("Tarefas").items.getById(item.Id).delete();
     firstLoad();
+  }
+  
+  const handleSearch = (e) => {
+    const searchValue = e.target.value;
+    const filtered = unfilteredTasks.filter(t => t.Title.toLowerCase().includes(searchValue.toLowerCase()));
+    setTasks(filtered);
+    setSearchInput(filtered);
   }
 
   const handleModal = () => setModalAlert(!modalAlert);
@@ -148,9 +138,9 @@ export default function HelloWorld(props: IHelloWorldProps) {
       <h1>Tarefas Diárias</h1>
       <div className={styles.form}>
         <label htmlFor="Title" className={styles.label}>Título da tarefa:</label>
-        <input type="text" id="Title" value={task.Title} onChange={dataForm} />
-        <label className={styles.label}>Descricao: </label>
-        <input type="text" id="Description" value={task.Description} onChange={dataForm} />
+        <input className={styles.inputForm} type="text" id="Title" value={task.Title} onChange={dataForm} />
+        <label className={styles.label}>Descrição: </label>
+        <input className={styles.inputForm} type="text" id="Description" value={task.Description} onChange={dataForm} />
         <label className={styles.label}>
           Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.done}>Finalizado</span>}
           <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
@@ -158,20 +148,23 @@ export default function HelloWorld(props: IHelloWorldProps) {
         <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
       </div>
       <div className={styles.containerStatusTarefas}>
-        <p className={styles.statusTarefa}>Pendentes<span className={styles.taskCount}>{countTasksPending}</span></p>
-        <p className={styles.statusTarefa}>Finalizadas <span className={styles.taskCount}>{countTasksComplete}</span></p>
-        <select id="filterSelect" onChange={(e) => setFilterParam(e.target.value) }>
+        <p className={styles.statusTarefa}>Pendentes<span >{tasks === null ? 0 : tasks.filter(t => !t.Done).length}</span></p>
+        <p className={styles.statusTarefa}>Finalizadas <span >{tasks === null ? 0 : tasks.filter(t => t.Done).length}</span></p>
+        <label className={styles.label}>Status:</label>
+        <select className={styles.select} id="filterSelect" onChange={filterStatusTask}>
+          <option id="" value="">--------</option>
           <option id="pending" value="pending">Pendente</option>
           <option id="complete" value="complete">Finalizada</option>
           <option id="all" value="all">Todas</option>
         </select>
-        <button onClick={filterStatusTask}>Filtrar</button>
+        <label className={styles.label}>Pesquisa: </label>
+        <input className={styles.searchInput} type="text" placeholder="Procure por uma tarefa" onChange={handleSearch}  />
       </div>
       <div className={styles.taskContainer}>
         {loading ? <p>Buscando...</p> : taskMethod(tasks)}
       </div>
       <div className={styles.btnContainer}>
-        { currentPage !== null && currentPage.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <span>Não há mais tarefas</span> }
+        { page && page !== null && page.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Nao ha mais tarefas</p> }
       </div>
       { !!modalAlert ?
        <div className={styles.modalAlert}>
