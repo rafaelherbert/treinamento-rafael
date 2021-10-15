@@ -21,7 +21,7 @@ const pageSize = 6;
 
 export default function HelloWorld(props: IHelloWorldProps) {
 
-  const [searchInput, setSearchInput] = useState<IListData[]>();
+  const [searchValue, setSearchValue] = useState<string>();
 
   const [filter, setFilter] = useState<string>(null);
   const [page, setPage] = useState<PagedItemCollection<IListData[]>>();
@@ -128,7 +128,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
     const searchValue = e.target.value;
     const filtered = unfilteredTasks.filter(t => t.Title.toLowerCase().includes(searchValue.toLowerCase()));
     setTasks(filtered);
-    setSearchInput(filtered);
+    setSearchValue(searchValue);
   }
 
   const handleModal = () => setModalAlert(!modalAlert);
@@ -158,13 +158,13 @@ export default function HelloWorld(props: IHelloWorldProps) {
           <option id="all" value="all">Todas</option>
         </select>
         <label className={styles.label}>Pesquisa: </label>
-        <input className={styles.searchInput} type="text" placeholder="Procure por uma tarefa" onChange={handleSearch}  />
+        <input className={styles.searchInput} type="text" value={searchValue} placeholder="Procure por uma tarefa" onChange={handleSearch}  />
       </div>
       <div className={styles.taskContainer}>
         {loading ? <p>Buscando...</p> : taskMethod(tasks)}
       </div>
       <div className={styles.btnContainer}>
-        { page && page !== null && page.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Nao ha mais tarefas</p> }
+        { !searchValue && page && page !== null && page.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Não há mais tarefas</p> }
       </div>
       { !!modalAlert ?
        <div className={styles.modalAlert}>
