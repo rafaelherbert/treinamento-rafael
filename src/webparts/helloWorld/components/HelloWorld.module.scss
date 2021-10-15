@@ -19,6 +19,9 @@ html, body {
   position: relative;
 }
 .form {
+  border: 1px solid blue;
+  display: flex;
+  flex-direction: column;
   padding: 15px 0px;
 }
 
@@ -161,38 +164,6 @@ html, body {
   border-radius: 50%;
 }
 
-.modalAlert {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.438);
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  z-index: 10;
-  animation: modal 0.3s;
-  // align-items: center;
-}
-
-.modal {
-  width: 35%;
-  max-width: 400px;
-  border-radius: 12px;
-  color: #000;
-  height: 35%;
-  position: fixed;
-  background-color: #fff;
-  margin-top: 200px;
-  text-align: center;
-  color: rgba(0, 0, 0, 0.705);
-  font-size: 1.8rem;
-}
-.modal>h3 {
-  padding: 40px 0px;
-}
-
 .modalBtn {
   position: absolute;
   top: 0;
@@ -203,6 +174,49 @@ html, body {
   margin: -10px -10px 0px 0px;
   background-color: #dd4040;
   color: #fff;
+  cursor: pointer;
+}
+
+.modalAddBtn {
+  margin-bottom: 15px;
+  border-radius: 8px;
+  color: #fff;
+  background-color: rgba(99, 189, 99, 0.76);
+  border: 1px solid #fff;
+  font-size: 21px;
+  cursor: pointer;
+  padding: 3px 0px;
+}
+
+.modalAddBackground { 
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 11;
+  background-color: rgba(0, 0, 0, 0.425);
+  display: flex;
+  // align-items: center;
+  // justify-content: center;
+}
+.modalAdd {
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  background-color: #f7f7f7;
+  width: 40%;
+  border-radius: 12px;
+  position: relative;
+  animation: modal 0.3s;
+  margin: 140px auto;
+  height: 300px;
+  h2{
+    text-align: center;
+  }
+  input {
+    margin-bottom: 10px;
+  }
 }
 
 .filterContainer {

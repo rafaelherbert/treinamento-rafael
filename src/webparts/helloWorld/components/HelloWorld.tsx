@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import { filter } from 'lodash';
 
 
-const pageSize = 6;
+const pageSize = 9;
 
 export default function HelloWorld(props: IHelloWorldProps) {
 
@@ -25,7 +25,8 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const [filter, setFilter] = useState<string>(null);
   const [page, setPage] = useState<PagedItemCollection<IListData[]>>();
-  const [modalAlert, setModalAlert] = useState<boolean>(false);
+  // const [modalAlert, setModalAlert] = useState<boolean>(false);
+  const [modalAdd, setModalAdd] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [tasks, setTasks] = useState<IListData[]>(null);
   const [unfilteredTasks, setUnfilteredTasks] = useState<IListData[]>(null);
@@ -45,7 +46,7 @@ export default function HelloWorld(props: IHelloWorldProps) {
 
   const firstLoad = async () => {
     const userId = props.context.pageContext.legacyPageContext["userId"]
-    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(6).getPaged();
+    const page: PagedItemCollection<IListData[]> = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).top(9).getPaged();
     setPage(page);
     
     const items: IListData[] = await sp.web.lists.getByTitle("Tarefas").items.filter(`Author eq ${userId}`).get();
@@ -110,13 +111,10 @@ export default function HelloWorld(props: IHelloWorldProps) {
   }
 
   const itemAdd = async () => {
-    if(task.Title !== '' && task.Description !== '') {
-      setTask({ ...task, Title: '', Description: '', Done: false })
-      await sp.web.lists.getByTitle("Tarefas").items.add(task);
-      firstLoad();
-    }else {
-      handleModal();
-    }
+    setTask({ ...task, Title: '', Description: '', Done: false })
+    await sp.web.lists.getByTitle("Tarefas").items.add(task);
+    firstLoad();
+    handleModalAdd()
   }
 
   const itemDelete = async (item) => {
@@ -131,22 +129,29 @@ export default function HelloWorld(props: IHelloWorldProps) {
     setSearchValue(searchValue);
   }
 
-  const handleModal = () => setModalAlert(!modalAlert);
+  // const handleModal = () => setModalAlert(!modalAlert);
+  const handleModalAdd = () => setModalAdd(!modalAdd);
 
   return (
     <div className={ styles.container}>
       <h1>Tarefas Diárias</h1>
-      <div className={styles.form}>
-        <label htmlFor="Title" className={styles.label}>Título da tarefa:</label>
-        <input className={styles.inputForm} type="text" id="Title" value={task.Title} onChange={dataForm} />
-        <label className={styles.label}>Descrição: </label>
-        <input className={styles.inputForm} type="text" id="Description" value={task.Description} onChange={dataForm} />
-        <label className={styles.label}>
-          Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.done}>Finalizado</span>}
-          <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
-        </label>
-        <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
-      </div>
+      { !modalAdd ? modalAdd : 
+      <div className={styles.modalAddBackground}>
+        <div className={styles.modalAdd}>
+          <h2>Nova tarefa</h2>
+          <label htmlFor="Title" className={styles.label}>Título da tarefa:</label>
+          <input className={styles.inputForm} type="text" id="Title" value={task.Title} onChange={dataForm} />
+          <label className={styles.label}>Descrição: </label>
+          <input className={styles.inputForm} type="text" id="Description" value={task.Description} onChange={dataForm} />
+          <label className={styles.label}>
+            Status: { !task.Done ? <span className={styles.pending}>Pendente</span> : <span className={styles.done}>Finalizado</span>}
+            <input className={styles.checkbox} type="checkbox" id="Done" checked={task.Done} onChange={dataForm} />
+          </label>
+          <button className={styles.addBtn} onClick={itemAdd}>Adicionar tarefa</button>
+          <button className={styles.modalBtn} onClick={handleModalAdd}>X</button>
+        </div>
+      </div> }
+      
       <div className={styles.containerStatusTarefas}>
         <p className={styles.statusTarefa}>Pendentes<span >{tasks === null ? 0 : tasks.filter(t => !t.Done).length}</span></p>
         <p className={styles.statusTarefa}>Finalizadas <span >{tasks === null ? 0 : tasks.filter(t => t.Done).length}</span></p>
@@ -160,19 +165,14 @@ export default function HelloWorld(props: IHelloWorldProps) {
         <label className={styles.label}>Pesquisa: </label>
         <input className={styles.searchInput} type="text" value={searchValue} placeholder="Procure por uma tarefa" onChange={handleSearch}  />
       </div>
+      <button className={styles.modalAddBtn} onClick={handleModalAdd}>+</button>
+
       <div className={styles.taskContainer}>
         {loading ? <p>Buscando...</p> : taskMethod(tasks)}
       </div>
       <div className={styles.btnContainer}>
         { !searchValue && page && page !== null && page.hasNext ? <button className={styles.moreBtn} onClick={loadMore}>Ver mais...</button> : <p>Não há mais tarefas</p> }
       </div>
-      { !!modalAlert ?
-       <div className={styles.modalAlert}>
-         <div className={styles.modal}>
-           <h3>Preencha todos os campos</h3>
-           <button className={styles.modalBtn} onClick={handleModal}>X</button>
-         </div>
-        </div> : modalAlert}
     </div>
   );
 }
