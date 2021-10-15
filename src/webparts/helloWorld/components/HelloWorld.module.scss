@@ -9,8 +9,9 @@ html, body {
 }
 
 .container {
+  width: 80%;
+  max-width: 960px;
   margin: 0 auto;
-  width: 960px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -24,7 +25,7 @@ html, body {
 .taskContainer {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: 15px;
 }
 
@@ -49,6 +50,7 @@ html, body {
   margin: 0px 15px;
 }
 .statusDone, .statusPending {
+  min-width: 300px;
   color: #fff;
   padding: 3px 9px;
   border-radius: 4px;
@@ -69,7 +71,7 @@ html, body {
 }
 
 .label {
-  margin-left: 12px;
+  margin: 0px 6px;
 }
 
 .btnContainer { 
@@ -77,13 +79,14 @@ html, body {
   text-align: center;
 }
 
-.addBtn, .moreBtn, .delBtn {
-  background-color: rgba(99, 163, 99, 0.76);
+.addBtn, .moreBtn, .delBtn, .filterBtn {
+  background-color: rgba(99, 189, 99, 0.76);
   font-weight: bold;
   border: none;
   color: #fff;
   border-radius: 6px;
   padding: 8px;
+  cursor: pointer;
 }
 
 .delBtn {
@@ -97,12 +100,17 @@ html, body {
   top: 0;
   right: 0;
 }
+.filterBtn {
+  background-color: rgba(99, 189, 99, 0.76);
+  margin-left: 10px;
+  padding: 6px 12px;
+}
+.select {
+  padding: 4px;
+  text-align: center;
+}
 .checkbox {
   margin-left: 5px;
-}
-
-.moreBtn:hover, .delBtn:hover, .addBtn:hover, .checkbox:hover {
-  cursor: pointer;
 }
 
 .btnContainer>button {
@@ -110,19 +118,32 @@ html, body {
 }
 
 .containerStatusTarefas {
+  width: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   margin-bottom: 25px;
 }
 
 .statusTarefa {
   background-color: #f3f3f3;
+  min-width: 110px;
   margin-right: 15px;
   border-radius: 8px;
   font-weight: bold;
   align-items: center;
-  padding: 8px 4px 8px 26px;
+  padding: 8px 12px;
   font-size: 1.5rem;
+  
+  span {
+    margin-left: 10px;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background-color: #8a8a8a;
+    min-width: 50px;
+    text-align: center;
+  }
 }
 .cardFooter {
   width: 100%;
@@ -131,14 +152,9 @@ html, body {
   justify-content: space-between;
   align-items: center;
 }
-.taskCount {
-  margin-left: 10px;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background-color: #000;
+.inputForm {
+  padding: 2px;
 }
-
 .icon {
   width: 35px;
   height: 35px;
@@ -181,13 +197,20 @@ html, body {
   position: absolute;
   top: 0;
   right: 0;
+  border: none;
   border-radius: 50%;
   padding: 8px;
   margin: -10px -10px 0px 0px;
+  background-color: #dd4040;
+  color: #fff;
 }
 
 .filterContainer {
   border: 1px solid black;
+}
+
+.searchInput {
+  padding: 2px;
 }
 
 @keyframes modal {

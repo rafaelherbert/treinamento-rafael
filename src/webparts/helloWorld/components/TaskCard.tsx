@@ -12,7 +12,6 @@ interface ITaskProps {
 const TaskCard = ({ item, deleteMethod, itemUpdate}: ITaskProps) => {
 
     useEffect(() => {
-        console.log(item)
     }, []);
 
     return (
