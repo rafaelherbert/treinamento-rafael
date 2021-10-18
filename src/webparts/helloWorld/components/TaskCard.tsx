@@ -23,8 +23,10 @@ const TaskCard = ({ item, deleteMethod, itemUpdate}: ITaskProps) => {
                     { item.Done ? <span className={styles.statusDone}>{item.Created.toString().substring(0, 10)}</span> : <span className={styles.statusPending}>{item.Created.toString().substring(0, 10)}</span> } 
                     <input type="checkbox" checked={item.Done} onClick={() => itemUpdate(item)}/>
                 </div>
-                <span>Criado por: {item.User && <p>{item.User.Title}</p>}</span>
-                { item.User.Email && <img className={styles.icon} src={`/_vti_bin/DelveApi.ashx/people/profileimage?size=S&userId=${item.User.Email}`} alt={`${item.User.Title}`} />  }
+                <div className={styles.boxInfo}>
+                    { item.User.Email && <img className={styles.icon} src={`/_vti_bin/DelveApi.ashx/people/profileimage?size=S&userId=${item.User.Email}`} alt={`${item.User.Title}`} />  }
+                    <span>{item.User && item.User.Title}</span>
+                </div>
             </div>
             <button className={styles.delBtn} onClick={() => deleteMethod(item)}>X</button>
         </div>

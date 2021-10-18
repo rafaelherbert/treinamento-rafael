@@ -38,15 +38,24 @@ html, body {
   padding: 25px; 
   box-shadow: 0 0 6px #e4e4e4;
   position: relative;
+
+  h2 {
+    text-transform: capitalize;
+    font-size: 1.5rem;
+  }
+  p {
+    font-size: 2rem;
+    margin: 20px 0px 35px;
+    text-transform: capitalize;
+  }
 }
-.taskCard>h2 {
-  text-transform: capitalize;
-  font-size: 1.5rem;
-}
-.taskCard>p {
-  font-size: 2rem;
-  margin: 20px 0px 35px;
-  text-transform: capitalize;
+.boxInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  span {
+    margin-top: 5px;
+  }
 }
 .addBtn {
   padding: 8px 12px;
@@ -92,6 +101,10 @@ html, body {
   cursor: pointer;
 }
 
+.moreBtn {
+  min-width: 276px;
+}
+
 .delBtn {
   width: 28px;
   height: 28px;
@@ -126,28 +139,36 @@ html, body {
   flex-wrap: wrap;
   align-items: center;
   margin-bottom: 25px;
-}
-
-.statusTarefa {
-  background-color: #f3f3f3;
-  min-width: 110px;
-  margin-right: 15px;
-  border-radius: 8px;
-  font-weight: bold;
   align-items: center;
-  padding: 8px 12px;
-  font-size: 1.5rem;
-  
-  span {
-    margin-left: 10px;
-    color: #fff;
-    padding: 6px 12px;
+  justify-content: center;
+
+  div {
+    background-color: #f3f3f3;
+    min-width: 110px;
+    margin-right: 15px;
     border-radius: 8px;
-    background-color: #8a8a8a;
-    min-width: 50px;
-    text-align: center;
+    font-weight: bold;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 1.5rem;
+    display: flex;
+    margin-top: 8px;
+
+    span {
+      margin-left: 10px;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background-color: #8a8a8a;
+      min-width: 50px;
+      text-align: center;
+    }
+  }
+  .ctnStatus {
+    background-color: #fff;
   }
 }
+
 .cardFooter {
   width: 100%;
   display: flex;
@@ -180,12 +201,13 @@ html, body {
 .modalAddBtn {
   margin-bottom: 15px;
   border-radius: 8px;
-  color: #fff;
-  background-color: rgba(99, 189, 99, 0.76);
-  border: 1px solid #fff;
+  color: #000;
+  background-color: #fff;
+  border: 3px solid #e4e4e4;
   font-size: 21px;
   cursor: pointer;
   padding: 3px 0px;
+  min-width: 276px;
 }
 
 .modalAddBackground { 
@@ -197,20 +219,20 @@ html, body {
   z-index: 11;
   background-color: rgba(0, 0, 0, 0.425);
   display: flex;
-  // align-items: center;
-  // justify-content: center;
 }
+
 .modalAdd {
   display: flex;
   flex-direction: column;
   padding: 30px;
   background-color: #f7f7f7;
-  width: 40%;
+  width: 50%;
   border-radius: 12px;
   position: relative;
   animation: modal 0.3s;
   margin: 140px auto;
   height: 300px;
+  min-width: 276px;
   h2{
     text-align: center;
   }
